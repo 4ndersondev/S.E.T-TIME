@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Produtividade do Operador</title>
+<style>
+body { font-family: Arial,sans-serif; background:url('https://img.freepik.com/fotos-premium/cronometro-no-fundo-desfocado_175024-13.jpg') no-repeat center center fixed; background-size:cover; padding:5vw; text-align:center; color:#0f0; position:relative; min-height:100vh; }
+body::before { content:""; position:absolute; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.85); z-index:0; }
+h1,a,.display-container,button,.log,.modal { position:relative; z-index:1; }
+h1 { font-size:8vw; margin-bottom:4vw; display:flex; align-items:center; justify-content:center; gap:2vw; }
+a { text-decoration:none; color:#0f0; font-size:4vw; margin-bottom:4vw; display:inline-block; }
+.display-container { background:#111; color:#0f0; padding:4vw; border-radius:2vw; margin:auto; margin-bottom:3vw; width:85%; max-width:420px; box-shadow:0 0 10px #0f0; }
+.display { font-size:18vw; font-family:monospace; font-weight:bold; text-shadow:0 0 20px #0f0; }
+.partial-display { font-size:10vw; margin-top:2vw; text-shadow:0 0 10px #0f0; }
+.subtitle { font-size:5vw; margin-top:1vw; }
+button { padding:3vw 5vw; margin:2vw; border:none; border-radius:3vw; font-weight:bold; font-size:5vw; cursor:pointer; transition:0.12s; }
+button:hover { transform: translateY(-2px); }
+.start { background: #28a745; color:white; }
+.stop { background: #dc3545; color:white; }
+.reset { background: #6c757d; color:white; }
+.summary { background: #ffc107; color:black; }
+.register { background: #007bff; color:white; width:90%; margin-top:3vw; font-size:5vw; }
+.elemento { background:#ff6600; color:white; width:90%; margin-top:2vw; font-size:5vw; }
+.log { margin-top:4vw; max-width:95%; margin-left:auto; margin-right:auto; }
+table { width:100%; border-collapse:collapse; margin-top:2vw; font-size:4vw; }
+th,td { border:1px solid #ccc; padding:2vw; text-align:center; }
+th { background:#007bff; color:white; }
+.modal { display:none; position:fixed; z-index:10; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.8); }
+.modal-content { background:#111; margin:12% auto; padding:18px; border-radius:15px; width:90%; max-width:420px; color:#0f0; box-shadow:0 0 15px #0f0; text-align:center; }
+.modal-content h3 { margin-top:0; text-shadow:0 0 10px #0f0; }
+.modal-content p { font-size:5vw; margin:8px 0; }
+.share-btn { background:#25D366; color:white; border:none; padding:10px 20px; border-radius:10px; font-size:5vw; cursor:pointer; margin-top:12px; display:flex; align-items:center; justify-content:center; gap:10px; }
+.share-btn img { width:24px; height:24px; }
+.close-btn { background:#dc3545; color:white; border:none; padding:10px 20px; border-radius:10px; font-size:5vw; cursor:pointer; margin-top:12px; }
+@media (min-width:768px) {
+  h1 { font-size:36px; gap:8px; }
+  a { font-size:18px; }
+  .display-container { padding:30px; border-radius:15px; max-width:380px; }
+  .display { font-size:90px; }
+  .partial-display { font-size:45px; }
+  .subtitle { font-size:20px; }
+  button { font-size:18px; padding:10px 18px; border-radius:10px; }
+  table { font-size:18px; }
+  .modal-content p { font-size:16px; }
+  .close-btn, .share-btn { font-size:16px; padding:8px 14px; }
+  .share-btn img { width:20px; height:20px; }
+}
+</style>
+</head>
+<body>
+<h1>👤 Produtividade do Operador</h1>
+<a href="index.html">⬅ Voltar</a>
+
+<div class="display-container">
+  <div id="display" class="display">0.000</div>
+  <div class="subtitle">M.CCC (minutos centezimais)</div>
+  <div id="partialDisplay" class="partial-display">Tempo Parcial: 0.000</div>
+</div>
+
+<div>
+  <button class="start" id="startBtn">▶ Iniciar</button>
+  <button class="stop" id="stopBtn" disabled>⏸ Parar</button>
+  <button class="reset" id="resetBtn">⟳ Resetar</button>
+  <button class="summary" id="summaryBtn">📊 Resumo</button>
+</div>
+
+<button class="register" id="registerBtn" disabled>💾 Registrar Tempo</button>
+<button class="elemento" id="elementoBtn">🌀 Elemento Estranho</button>
+
+<div class="log">
+  <h2>Registros</h2>
+  <table id="logTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Tempo Bruto (min)</th>
+        <th>Pares por dia</th>
+        <th>Pares por hora</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div id="summaryModal" class="modal">
+  <div class="modal-content">
+    <h3>📊 Resumo de Produtividade</h3>
+    <p id="summaryText">Calculando...</p>
+    <button id="shareBtn" class="share-btn">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp">
+      Compartilhar
+    </button>
+    <button id="closeModalBtn" class="close-btn">Fechar</button>
+  </div>
+</div>
+
+<script>
+let totalTime=0, partialTime=0, interval=null, running=false, registerCount=0;
+const display=document.getElementById("display");
+const partialDisplay=document.getElementById("partialDisplay");
+const startBtn=document.getElementById("startBtn");
+const stopBtn=document.getElementById("stopBtn");
+const resetBtn=document.getElementById("resetBtn");
+const registerBtn=document.getElementById("registerBtn");
+const summaryBtn=document.getElementById("summaryBtn");
+const elementoBtn=document.getElementById("elementoBtn");
+const logTableBody=document.querySelector("#logTable tbody");
+const modal=document.getElementById("summaryModal");
+const summaryText=document.getElementById("summaryText");
+const closeModalBtn=document.getElementById("closeModalBtn");
+const shareBtn=document.getElementById("shareBtn");
+
+function formatTime(units){
+  const totalMinutes=units/1000;
+  const minutes=Math.floor(totalMinutes);
+  const cPart=Math.round((totalMinutes-minutes)*1000);
+  return `${minutes}.${cPart.toString().padStart(3,'0')}`;
+}
+
+function updateDisplay(){
+  display.textContent=formatTime(totalTime);
+  partialDisplay.textContent="Tempo Parcial: "+formatTime(partialTime);
+}
+
+function start(){
+  if(!running){
+    running=true;
+    interval=setInterval(()=>{
+      totalTime++; partialTime++; updateDisplay();
+    },60);
+    startBtn.disabled=true;
+    stopBtn.disabled=false;
+    registerBtn.disabled=false;
+  }
+}
+
+function stop(){ running=false; clearInterval(interval); startBtn.disabled=false; stopBtn.disabled=true; }
+
+function reset(){ totalTime=0; partialTime=0; updateDisplay(); logTableBody.innerHTML=""; registerCount=0; stop(); registerBtn.disabled=true; }
+
+function register(){
+  if(partialTime===0) return;
+  const units=partialTime;
+  const minBruto=units/1000;
+  const paresDia=minBruto===0?0:(528/minBruto).toFixed(2);
+  const paresHora=minBruto===0?0:(60/minBruto).toFixed(2);
+  registerCount++;
+  const row=document.createElement("tr");
+  row.innerHTML=`<td>${registerCount}</td><td data-units="${units}">${minBruto.toFixed(3)}</td><td>${paresDia}</td><td>${paresHora}</td>`;
+  logTableBody.appendChild(row);
+  partialTime=0;
+  updateDisplay();
+}
+
+function resetPartialOnly(){ partialTime=0; updateDisplay(); }
+
+function showSummary(){
+  stop();
+  const rows=logTableBody.querySelectorAll("tr");
+  if(rows.length===0){
+    summaryText.innerHTML="Nenhum registro encontrado.<br>Registre pelo menos um tempo antes de gerar o resumo.";
+    modal.style.display="block";
+    shareBtn.style.display="none";
+    return;
+  }
+  shareBtn.style.display="inline-flex";
+
+  let totalUnits=0;
+  rows.forEach(r=>{
+    const units=parseInt(r.children[1].getAttribute('data-units'),10);
+    totalUnits+=units;
+  });
+  const n=rows.length;
+  const avgUnits=totalUnits/n;
+  const tempoMedioMin=avgUnits/1000;
+  const avgTime=formatTime(Math.round(avgUnits));
+  const paresDia=(528/tempoMedioMin).toFixed(2);
+  const paresHora=(60/tempoMedioMin).toFixed(2);
+
+  summaryText.innerHTML=`
+    📝 Total de registros: <b>${n}</b><br>
+    ⏱ Tempo médio: <b>${avgTime}</b><br>
+    👟 Pares por dia: <b>${paresDia}</b><br>
+    👟 Pares por hora: <b>${paresHora}</b>
+  `;
+
+  shareBtn.onclick=()=>{
+    let message="📊 *S.E.T TIME - Relatório de Produtividade*\n\n";
+    message+="🧾 *Tomadas de tempo (minutos):*\n";
+    rows.forEach((r,i)=>{
+      message+=`• ${i+1}️⃣ → ${r.children[1].textContent} min\n`;
+    });
+    message+=`\n📈 *Pares por dia:* ${paresDia}\n⏰ *Pares por hora:* ${paresHora}\n`;
+    const url="https://wa.me/?text="+encodeURIComponent(message);
+    window.open(url,"_blank");
+  };
+
+  modal.style.display="block";
+}
+
+closeModalBtn.onclick=()=>modal.style.display="none";
+window.onclick=e=>{ if(e.target==modal) modal.style.display="none"; };
+
+startBtn.onclick=start;
+stopBtn.onclick=stop;
+resetBtn.onclick=reset;
+registerBtn.onclick=register;
+summaryBtn.onclick=showSummary;
+elementoBtn.onclick=resetPartialOnly;
+
+updateDisplay();
+</script>
+</body>
+</html>
