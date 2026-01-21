@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Produtividade da Esteira</title>
+<style>
+/* Corpo da página */
+body {
+  font-family: Arial, sans-serif;
+  background: url('https://img.freepik.com/fotos-premium/cronometro-no-fundo-desfocado_175024-13.jpg') no-repeat center center fixed;
+  background-size: cover;
+  margin:0;
+  padding:2vw;
+  text-align:center;
+  color:#0f0;
+  position: relative;
+  min-height:100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+body::before {
+  content:"";
+  position:absolute;
+  top:0; left:0;
+  width:100%; height:100%;
+  background-color: rgba(0,0,0,0.85);
+  z-index:0;
+}
+h1, a, .display-container, button, .log { position:relative; z-index:1; }
+
+/* Cabeçalho */
+h1 {
+  font-size:8vw;
+  margin-bottom:4vw;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:2vw;
+}
+a {
+  text-decoration:none;
+  color:#0f0;
+  font-size:4vw;
+  margin-bottom:4vw;
+  display:inline-block;
+}
+
+/* Display principal */
+.display-container {
+  background:#111;
+  color:#0f0;
+  padding:6vw;
+  border-radius:4vw;
+  margin:auto;
+  margin-bottom:4vw;
+  width:90%;
+  max-width:500px;
+  border: 0.3vw solid #0f0;
+  box-shadow: 0 0 20px rgb(42, 90, 42), 0 0 40px rgb(29, 74, 29), 0 0 60px rgb(44, 103, 44);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.display {
+  font-size:16vw;
+  font-family:monospace;
+  font-weight:bold;
+  text-shadow:0 0 20px #0f0;
+}
+.partial-display {
+  font-size:8vw;
+  margin-top:2vw;
+  text-shadow:0 0 10px #0f0;
+}
+.subtitle {
+  font-size:4vw;
+  margin-top:1vw;
+}
+
+/* Botões */
+button {
+  padding:3vw 5vw;
+  margin:2vw 1vw;
+  border:none;
+  border-radius:3vw;
+  font-weight:bold;
+  font-size:5vw;
+  cursor:pointer;
+}
+.start { background:#28a745; color:white; }
+.stop { background:#dc3545; color:white; }
+.reset { background:#6c757d; color:white; }
+.register { background:#007bff; color:white; width:90%; margin-top:3vw; font-size:5vw; }
+
+/* Log / tabela */
+.log {
+  margin-top:4vw;
+  width:100%;
+  max-width:600px;
+  overflow-x:auto;
+}
+table {
+  width:100%;
+  border-collapse: collapse;
+  margin-top:2vw;
+  font-size:4vw;
+}
+th, td {
+  border:1px solid #ccc;
+  padding:2vw;
+  text-align:center;
+}
+th {
+  background:#007bff;
+  color:white;
+}
+
+/* Media queries para desktop */
+@media(min-width:768px){
+  h1{ font-size:36px; gap:8px; }
+  a{ font-size:18px; }
+  .display-container{ padding:40px; border-radius:15px; border-width:2px; }
+  .display{ font-size:90px; }
+  .partial-display{ font-size:50px; }
+  .subtitle{ font-size:20px; }
+  button{ font-size:18px; padding:15px 25px; border-radius:10px; }
+  table{ font-size:18px; }
+}
+</style>
+</head>
+<body>
+<h1>📊 Produtividade da Esteira</h1>
+<a href="index.html">⬅ Voltar</a>
+
+<div class="display-container">
+  <div id="display" class="display">0.000</div>
+  <div class="subtitle">M.CCC (minutos centezimais)</div>
+  <div id="partialDisplay" class="partial-display">Tempo Parcial: 0.000</div>
+</div>
+
+<div>
+  <button class="start" id="startBtn">▶ Iniciar</button>
+  <button class="stop" id="stopBtn" disabled>⏸ Parar</button>
+  <button class="reset" id="resetBtn">⟳ Resetar</button>
+</div>
+
+<button class="register" id="registerBtn" disabled>💾 Registrar Tempo</button>
+
+<div class="log">
+  <h2>Registros</h2>
+  <table id="logTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Tempo Bruto</th>
+        <th>Pares/dia</th>
+        <th>Pares/dia -10%</th>
+        <th>Pares/hora -10%</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+let totalTime=0, partialTime=0, interval=null, running=false, registerCount=0;
+const display=document.getElementById("display");
+const partialDisplay=document.getElementById("partialDisplay");
+const startBtn=document.getElementById("startBtn");
+const stopBtn=document.getElementById("stopBtn");
+const resetBtn=document.getElementById("resetBtn");
+const registerBtn=document.getElementById("registerBtn");
+const logTableBody=document.querySelector("#logTable tbody");
+
+function formatTime(centezimalUnits){
+  const totalMinutes=centezimalUnits/1000;
+  const minutes=Math.floor(totalMinutes);
+  const cPart=Math.round((totalMinutes-minutes)*1000);
+  return `${minutes}.${cPart.toString().padStart(3,'0')}`;
+}
+
+function updateDisplay(){
+  display.textContent=formatTime(totalTime);
+  partialDisplay.textContent="Tempo Parcial: "+formatTime(partialTime);
+}
+
+function start(){
+  if(!running){
+    running=true;
+    interval=setInterval(()=>{
+      totalTime++; partialTime++;
+      updateDisplay();
+    },60);
+    startBtn.disabled=true;
+    stopBtn.disabled=false;
+    registerBtn.disabled=false;
+  }
+}
+function stop(){ running=false; clearInterval(interval); startBtn.disabled=false; stopBtn.disabled=true; }
+function reset(){ totalTime=0; partialTime=0; updateDisplay(); logTableBody.innerHTML=""; registerCount=0; stop(); registerBtn.disabled=true; }
+function register(){
+  if(partialTime===0) return;
+  registerCount++;
+  const minBruto=partialTime/1000;
+  const paresDia=(528/minBruto).toFixed(2);
+  const paresHora=(60/minBruto).toFixed(2);
+  const paresDiaMenos10=(paresDia*0.9).toFixed(2);
+  const paresHoraMenos10=(paresHora*0.9).toFixed(2);
+
+  const row=document.createElement("tr");
+  row.innerHTML=`
+    <td>${registerCount}</td>
+    <td>${formatTime(partialTime)}</td>
+    <td>${paresDia}</td>
+    <td>${paresDiaMenos10}</td>
+    <td>${paresHoraMenos10}</td>
+  `;
+  logTableBody.appendChild(row);
+  partialTime=0;
+  updateDisplay();
+}
+
+startBtn.onclick=start;
+stopBtn.onclick=stop;
+resetBtn.onclick=reset;
+registerBtn.onclick=register;
+updateDisplay();
+</script>
+</body>
+</html>

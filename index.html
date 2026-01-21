@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>S.E.T TIME — Controle de Produtividade</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f3f4f6;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --card: #ffffff;
+  --border: #e5e7eb;
+  --brand: #2563eb; 
+  --shadow: rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin:0; padding:0; font-family:'Poppins',sans-serif; }
+body {
+  background: url('https://img.freepik.com/fotos-premium/cronometro-no-fundo-desfocado_175024-13.jpg') no-repeat center center fixed;
+  background-size: cover;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  color: var(--text);
+  position: relative;
+}
+body::before {
+  content:"";
+  position:absolute;
+  top:0; left:0;
+  width:100%; height:100%;
+  background-color: rgba(0,0,0,0.4);
+  z-index:0;
+}
+.wrap {
+  width: min(800px, 95vw);
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+.brand {
+  font-size: 8vw;
+  font-weight: 900;
+  color: var(--brand);
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+  display: inline-block;
+  background: rgba(255,255,255,0.4);
+  padding: 4px 8px;
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
+}
+.header { margin-bottom: 20px; }
+.title { font-size:6vw; font-weight:800; color:#fff; }
+.sub { color:#e0e0e0; font-size:3vw; margin-top:4px; }
+
+.clock {
+  font-family:'Courier New', monospace;
+  font-size:12vw;
+  font-weight:bold;
+  color: var(--brand);
+  text-align: center;
+  margin: 20px 0;
+  background: #fff;
+  padding: 4vw 8vw;
+  border-radius: 4vw;
+  box-shadow: 0 4px 12px var(--shadow);
+}
+
+.stack { display: grid; gap: 4vw; margin-top: 4vw; }
+
+a { text-decoration:none; color:inherit; }
+
+.card {
+  background: var(--card);
+  border-radius: 4vw;
+  padding: 4vw;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 4vw;
+  cursor:pointer;
+  flex-wrap: wrap;
+}
+
+.card:hover {
+  transform: translateY(-0.5vw);
+  box-shadow: 0 3vw 6vw var(--shadow);
+  border-color: var(--brand);
+}
+
+.icon {
+  width: 12vw;
+  height: 12vw;
+  border-radius: 2vw;
+  display: grid;
+  place-items: center;
+  border:1px solid var(--border);
+  background:#f9fafb;
+  font-size: 6vw;
+  flex-shrink:0;
+}
+
+.label { font-weight:600; font-size:4vw; color:var(--text); }
+.desc { color: var(--muted); font-size:3vw; margin-top:2vw; }
+
+.footer {
+  position: fixed;
+  bottom: 5px;
+  width: 100%;
+  text-align: center;
+  font-size: 2.5vw;
+  color: #fff;
+  z-index: 10;
+  backdrop-filter: blur(4px);
+  background-color: rgba(0,0,0,0.5);
+  padding: 6px 0;
+}
+
+.footer a {
+  color: var(--brand);
+  font-weight:600;
+  text-decoration: none;
+  transition: 0.2s;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}
+
+@media(min-width:768px){
+  .brand { font-size:48px; }
+  .title { font-size:32px; }
+  .sub { font-size:16px; }
+  .clock { font-size:52px; padding:14px 28px; border-radius:16px;}
+  .stack { gap:22px; }
+  .card { padding:22px; border-radius:18px; gap:18px; flex-wrap:nowrap;}
+  .icon { width:50px; height:50px; font-size:24px; border-radius:14px;}
+  .label { font-size:20px; }
+  .desc { font-size:14px; margin-top:4px; }
+  .footer { font-size:14px; bottom:10px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">S.E.T TIME</div>
+  <div class="header">
+    <div class="title">Controle de Produtividade</div>
+    <div class="sub">Monitore e calcule a produtividade em tempo real</div>
+  </div>
+
+  <div class="clock" id="clock">00:00:00</div>
+
+  <div class="stack">
+    <a href="esteira.html">
+      <div class="card">
+        <div class="icon">📊</div>
+        <div>
+          <div class="label">Produtividade da Esteira</div>
+          <div class="desc">Cronometragem e cálculo de produção</div>
+        </div>
+      </div>
+    </a>
+
+    <a href="operador.html">
+      <div class="card">
+        <div class="icon">👤</div>
+        <div>
+          <div class="label">Produtividade do Operador</div>
+          <div class="desc">Análise de produção diária e por hora</div>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- Rodapé com link para WhatsApp -->
+<div class="footer">
+  💻 Criado por 
+  <a href="https://wa.me/5573988109077?text=Ol%C3%A1%2C%20quero%20falar%20com%20você%21" target="_blank">
+    Anderson Sousa
+  </a> — 2025
+</div>
+
+<script>
+function updateClock(){
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+}
+setInterval(updateClock,1000);
+updateClock();
+</script>
+</body>
+</html>
